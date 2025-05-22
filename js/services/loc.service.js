@@ -39,9 +39,7 @@ function query(gUserPos) {
         .then(locs => {
             if (gUserPos && gUserPos.lat && gUserPos.lng) {
                 locs.forEach(loc => {
-                    console.log('loc-from service', loc)
                     if (loc.geo?.lat !== undefined && loc.geo?.lng !== undefined) {
-                        console.log('loc geo service query', loc.geo)
                         loc.distance = utilService.getDistance(
                             gUserPos.lat, gUserPos.lng,
                             loc.geo.lat, loc.geo.lng
@@ -87,10 +85,14 @@ function remove(locId) {
 
 function save(loc) {
     if (loc.id) {
+        // Existing location: update
         loc.updatedAt = Date.now()
         return storageService.put(DB_KEY, loc)
     } else {
-        loc.createdAt = loc.updatedAt = Date.now()
+        // New location: create without updatedAt
+        loc.id = utilService.makeId()
+        loc.createdAt = Date.now()
+        // Do NOT assign updatedAt
         return storageService.post(DB_KEY, loc)
     }
 }
@@ -133,20 +135,6 @@ function getLocCountByUpdatedMap() {
             updatedMap.total = locs.length
             return updatedMap
         })
-}
-
-function renderPieChart(data) {
-  const ctx = document.getElementById('myPieChart').getContext('2d');
-  new Chart(ctx, {
-    type: 'pie',
-    data: {
-      labels: data.map(d => d.label),
-      datasets: [{
-        data: data.map(d => d.value),
-        backgroundColor: ['#4caf50', '#ff9800', '#9e9e9e'],
-      }]
-    }
-  });
 }
 
 function setSortBy(sortBy = {}) {

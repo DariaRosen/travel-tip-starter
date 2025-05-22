@@ -36,14 +36,12 @@ function lookupAddressGeo(geoOrAddress) {
     // const url = `https://maps.googleapis.com/maps/api/geocode/json?latlng=40.714224,-73.961452`
 
     var url = `https://maps.googleapis.com/maps/api/geocode/json?key=${API_KEY}&`
-    //console.log('url', url)
     url += (geoOrAddress.lat) ? `latlng=${geoOrAddress.lat},${geoOrAddress.lng}` :
         `address=${geoOrAddress}`
 
     return fetch(url)
         .then(res => res.json())
         .then(res => {
-            console.log('RES IS', res)
             if (!res.results.length) return new Error('Found nothing')
             res = res.results[0]
             const {formatted_address, geometry} = res
@@ -54,7 +52,6 @@ function lookupAddressGeo(geoOrAddress) {
                 lng: geometry.location.lng,
                 zoom: gMap.getZoom()
             }
-            // console.log('GEO IS', geo)
             return geo
         })
 
@@ -64,7 +61,6 @@ function addClickListener(cb) {
     gMap.addListener('click', (mapsMouseEvent) => {
         const geo = { lat: mapsMouseEvent.latLng.lat(), lng: mapsMouseEvent.latLng.lng() }
         lookupAddressGeo(geo).then(cb)  
-        console.log('geo-service', geo) 
     })
 }
 

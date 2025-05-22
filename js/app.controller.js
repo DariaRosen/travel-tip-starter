@@ -16,6 +16,8 @@ window.app = {
     onShareLoc,
     onSetSortBy,
     onSetFilterBy,
+    onCancelLoc,
+    onSaveLoc,
 }
 
 let gUserPos = {
@@ -66,7 +68,6 @@ function renderLocs(locs) {
     })
 
     var strHTML = locs.map(loc => {
-        /*debugger*/
         const className = (loc.id === selectedLocId) ? 'active' : ''
         return `
         <li class="loc ${className}" data-id="${loc.id}">
@@ -89,7 +90,6 @@ function renderLocs(locs) {
             </div>     
         </li>`}).join('')
 
-        /*debugger*/
     const lastUpdatedGroups = groupByLastUpdated(locs);
 
     const pieChartData = [
@@ -398,18 +398,45 @@ function groupByLastUpdated(locs) {
     return groups;
 }
 
-function onAddLoc(geo) {
-    gEditLoc = null
+/*function onAddLoc(geo) {
     const dialog = document.getElementById('loc-modal')
     dialog.querySelector('.modal-title').innerText = 'Add Location'
-    dialog.querySelector('[name="name"]').value = ''
-    dialog.querySelector('[name="rate"]').value = 3
-    dialog.dataset.geo = JSON.stringify(geo)
+
+    // Translate coordinates into a readable address
+    mapService.lookupAddressGeo(geo).then(address => {
+        const nameInput = dialog.querySelector('[name="name"]')
+        nameInput.value = address || `Lat: ${geo.lat.toFixed(3)}, Lng: ${geo.lng.toFixed(3)}`
+    })
+
+    dialog.querySelector('[name="rate"]').value = ''
+    dialog.setAttribute('data-geo', JSON.stringify(geo))
     dialog.showModal()
+}*/
+function onAddLoc(geo) {
+    mapService.lookupAddressGeo(geo).then((resolvedGeo) => {
+        const loc = {
+            name: resolvedGeo.address || 'Just a place',
+            rate: 3,
+            geo: resolvedGeo
+        }
+
+        // Pre-fill the form and open the modal
+        const dialog = document.getElementById('loc-modal')
+        dialog.querySelector('.modal-title').innerText = 'Add Location'
+        dialog.querySelector('[name="name"]').value = loc.name
+        dialog.querySelector('[name="rate"]').value = loc.rate
+        dialog.dataset.geo = JSON.stringify(loc.geo)
+        dialog.showModal()
+    }).catch(err => {
+        console.error('Failed to lookup address', err)
+    })
 }
 
+
+
+
 function onUpdateLoc(locId) {
-    locService.get(locId).then(loc => {
+    locService.getById(locId).then(loc => {
         gEditLoc = loc
         const dialog = document.getElementById('loc-modal')
         dialog.querySelector('.modal-title').innerText = 'Update Location'
@@ -427,37 +454,31 @@ function onCancelLoc() {
 
 function onSaveLoc(ev) {
     ev.preventDefault()
+
     const dialog = document.getElementById('loc-modal')
-    const name = dialog.querySelector('[name="name"]').value.trim()
+    const name = dialog.querySelector('[name="name"]').value
     const rate = +dialog.querySelector('[name="rate"]').value
-    const now = Date.now()
 
-    if (!name || rate < 1 || rate > 5) return alert('Invalid data')
-
-    if (gEditLoc) {
-        const updatedLoc = {
-            ...gEditLoc,
-            name,
-            rate,
-            updatedAt: now
-        }
-        locService.update(updatedLoc).then(() => {
-            renderLocsFromService()
-            dialog.close()
-        })
-    } else {
-        const geo = JSON.parse(dialog.dataset.geo || '{}')
-        const newLoc = {
-            name,
-            rate,
-            geo,
-            createdAt: now,
-            updatedAt: now,
-        }
-        locService.save(newLoc).then(() => {
-            renderLocsFromService()
-            dialog.close()
-        })
+    const locToSave = gEditLoc ? { ...gEditLoc, name, rate } : {
+        name,
+        rate,
+        createdAt: Date.now(),
+        geo: JSON.parse(dialog.dataset.geo),
+        lastUpdated: Date.now(),
     }
+
+    locService.save(locToSave)
+        .then(savedLoc => {
+            flashMsg(`Location ${gEditLoc ? 'updated' : 'added'}: ${savedLoc.name}`)
+            gEditLoc = null
+            loadAndRenderLocs()
+        })
+        .catch(err => {
+            console.error('OOPs:', err)
+            flashMsg('Cannot save location')
+        })
+
+    dialog.close()
 }
+
 
