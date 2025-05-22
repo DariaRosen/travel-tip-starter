@@ -1,0 +1,36 @@
+:root {
+    --bg1: #007a87;       /* teal (dark) */
+    --bg2: #00b4d8;       /* vibrant cyan */
+    --bg3: #48cae4;       /* soft turquoise */
+    
+    --color1: #e0f7fa;    /* pale cyan (for text on dark bg) */
+    --color2: #00ffff;    /* bright aqua */
+    --color3: #a0f0ed;    /* pastel aqua */
+    --color4: #2ec4b6;    /* strong turquoise */
+    
+    --gray1: #4a5557;     /* cool light gray with a blue tint */
+}
+
+/*:root {
+    --bg1: darkslateblue;
+    --bg2: darkorchid;
+    --bg3: darkmagenta;
+    --color1: aliceblue;
+    --color2: deeppink;
+    --color3: gold;
+    --color4: goldenrod;
+    --gray1: lightgray;
+}
+*/
+
+/* Another theme */
+/* :root {
+    --bg1: rgb(37, 13, 195);
+    --bg2: rgb(26, 110, 146);
+    --bg3: rgb(9, 49, 226);
+    --color1: aliceblue;
+    --color2: rgb(94, 169, 240);
+    --color3: rgb(211, 187, 48);
+    --color4: rgb(90, 66, 6);
+    --gray1: lightgray;
+} */
